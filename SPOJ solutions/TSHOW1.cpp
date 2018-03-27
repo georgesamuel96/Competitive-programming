@@ -71,7 +71,7 @@ int main(){
 	while (t--)
 	{
 		cin >> k;
-		cout << "Case " << test++ << ": ";
+
 		ll index = 0;
 		while (sum[index] < k)
 			index++;
@@ -95,9 +95,9 @@ int main(){
 		while (ans)
 		{
 			if (ans % 2 == 0)
-				str.push_back('4');
+				str.push_back('5');
 			else
-				str.push_back('7');
+				str.push_back('6');
 			ans /= 2;
 		}
 		int numberOfDigits = 0;
@@ -105,7 +105,7 @@ int main(){
 		while (index)
 			numberOfDigits++, index /= 2;
 		while (str.size() < numberOfDigits)
-			str.push_back('4');
+			str.push_back('5');
 		for (int i = str.size() - 1; i >= 0; i--)
 			cout << str[i];
 
