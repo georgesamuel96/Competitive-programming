@@ -78,15 +78,16 @@ int main(){
 	cin >> t;
 	while (t--)
 	{
-		
+
 		cin >> n >> m;
 		for (int i = 0; i < n; i++)
 			for (int j = 0; j < m; j++)
 				cin >> arr[i][j];
 		memset(dp, -1, sizeof dp);
-		double ans = solve(0, m) / n;
-		if (ans >= 5.0)
-			cout << "Maximal possible average mark - " << ans << ".\n";
+		int ans = solve(0, m);
+		double anss = EPS + ans / (double)(n);
+		if (anss >= 5.0)
+			cout << "Maximal possible average mark - " << anss << ".\n";
 		else
 			cout << "Peter, you shouldn't have played billiard that much.\n";
 	}
