@@ -15,6 +15,7 @@
 #include<cmath>
 #include<stack>
 #include<climits>
+#include<functional>
 
 using namespace std;
 typedef long long ll;
@@ -27,16 +28,22 @@ typedef vector<char>vc;
 typedef vector<string>vs;
 #define MP make_pair
 #define all(v) v.begin(),v.end()
+#define rall(v) v.rbegin(),v.rend()
 #define EPS 1e-9
+#define PI 3.14159265359
 const ll mod = 1000000007;
-const ll OO = (ll)1e18;
-const int dx[] = { 0, 1, -1, 0, 1, -1, 1, -1 };
-const int dy[] = { 1, 0, 0, -1, 1, -1, -1, 1 };
+const ll OO = (ll)1e9;
+const int dx[] = { 0, 1, 0, -1, 1, -1, 1, -1 };
+const int dy[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 ll gcd(ll a, ll b){ if (b == 0){ return a; }return gcd(b, a % b); }
-ll fast_power(double base, ll power){
-	if (power == 1) return base;
-	if (power % 2 == 0) return fast_power((base*base), power / 2);
-	else return(base*fast_power((base*base), power / 2));
+ll fast_power(ll base, ll power){
+	if (power == 0)
+		return 1;
+	if (power == 1)
+		return (base % mod);
+	if (power % 2 == 0)
+		return (fast_power(((base*base) % mod), power / 2LL) % mod);
+	else return ((base*fast_power(((base*base) % mod) % mod, power / 2LL)) % mod);
 }
 //#pragma warning (disable : 4996)
 void Qalbaz()
@@ -48,110 +55,92 @@ void Qalbaz()
 	ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 	cout << fixed << setprecision(2);
 }
-
 struct point
 {
 	double x, y;
-	bool between(point p, point q)
+	point()
 	{
-		return x <= max(p.x, q.x) && x >= min(p.x, q.x) && y >= min(p.y, q.y) && y <= max(p.y, q.y);
-	}
-};
-struct line
-{
-	double a, b, c;
-};
-void getLine(point p1, point p2, line &l)
-{
-	if (abs(p1.x - p2.x) < EPS)
-	{
-		l.a = 1.0; l.b = 0.0; l.c = -p1.x;
-	}
-	else
-	{
-		l.a = (p1.y - p2.y) / (p2.x - p1.x);
-		l.b = 1.0;
-		l.c = -p1.x * l.a - p1.y;
-	}
-}
-bool parallel(line l1, line l2)
-{
-	return abs(l1.a - l2.a) < EPS && abs(l1.b - l2.b) < EPS;
 
-}
-bool same(line l1, line l2) {
-	return parallel(l1, l2) && (fabs(l1.c - l2.c) < EPS);
-}
-point intersect(line l1, line l2)
-{
-	double det = l1.a * l2.b - l2.a * l1.b;
-	point p;
-	p.x = 0, p.y = 0;
-	if (parallel(l1, l2))
-		return p;
-	else
-	{
-		p.x = (l1.b * l2.c - l2.b * l1.c) / det;
-		if (abs(l1.b) > EPS)
-			p.y = -l1.a * p.x - l1.c;
-		else				  
-			p.y = -l2.a * p.x - l2.c;
-		return p;
 	}
+	point(double _x, double _y)
+	{
+		x = _x, y = _y;
+	}
+};
+bool IN(double a, double b, double c)
+{
+	if (a <= c && c <= b)
+		return true;
+	return false;
 }
+bool onLine(point A, point B, point C)
+{
+	double minX = min(A.x, B.x);
+	double maxX = max(A.x, B.x);
+	double minY = min(A.y, B.y);
+	double maxY = max(A.y, B.y);
+	if (IN(minX, maxX, C.x) && IN(minY, maxY, C.y))
+	{
+		if ((A.x - B.x) * (C.y - A.y) == (A.y - B.y) * (C.x - A.x))
+			return true;
+	}
+	return false;
+}
+long double cross(point A, point B, point C)
+{
+	return ((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x));
+}
+bool INTERSECT(point A, point B, point C, point D)
+{
+	if (onLine(A, B, C) || onLine(A, B, D) || onLine(C, D, A) || onLine(C, D, B))
+		return true;
+	if (cross(A, B, C) * cross(A, B, D) < 0 && cross(B, A, C) * cross(B, A, D) &&
+		cross(C, D, A) * cross(C, D, B) < 0 && cross(D, C, A) * cross(D, C, B) < 0)
+		return true;
+	return false;
+}
+
 int main(){
 
 	Qalbaz();
 
-	double a, b, c, d;
+	vector<pair<point, point>>vec;
+	pair<double, double> newPoint;
+	vi vv, ans;
 	int n;
-	point p1, p2;
-	vector<pair<pair<point, point>, int>>vec;
-	int test = 1;
-	line l1, l2;
-	while (cin >> n)
+	while (cin >> n && n)
 	{
-		if (n == 0)
-			break;
-		
-		vec.clear();
-		for (int k = 0; k < n; k++)
+		vec.resize(n);
+		vv.clear();
+		vv.resize(n);
+		bool f;
+		int sz = 0, cnt, _ans;
+		for (int i = 0; i < n; i++)
 		{
-			cin >> a >> b >> c >> d;
-			p1.x = a, p1.y = b;
-			p2.x = c, p2.y = d;
-			vec.push_back(MP(MP(p1, p2), k + 1));
-			if (k == 0)
-				continue;
-			int i = vec.size() - 1;
-			for (int j = 0; j < vec.size() - 1; j++)
+			cnt = 0;
+			cin >> vec[i].first.x >> vec[i].first.y >> vec[i].second.x >> vec[i].second.y;
+			f = true;
+			for (int j = 0; j < sz; j++)
 			{
-				getLine(vec[i].first.first, vec[i].first.second, l1);
-				getLine(vec[j].first.first, vec[j].first.second, l2);
-				if (parallel(l1, l2))
-				{
-					if (same(l1, l2))
-					{
-						if (vec[j].first.first.between(vec[i].first.first, vec[i].first.second) || vec[j].first.second.between(vec[i].first.first, vec[i].first.second) || vec[i].first.first.between(vec[j].first.first, vec[j].first.second) || vec[i].first.second.between(vec[j].first.first, vec[j].first.second))
-							vec.erase(vec.begin() + (j)), j--, i--;
-					}
-				}
-				else
-				{
-					p1 = intersect(l1, l2);
-					if (p1.between(vec[j].first.first, vec[j].first.second) && p1.between(vec[i].first.first, vec[i].first.second))
-						vec.erase(vec.begin() + (j)), j--, i--;
-				}
+				if (INTERSECT(vec[vv[j]].first, vec[vv[j]].second, vec[i].first, vec[i].second))
+					continue;
+				vv[cnt] = vv[j];
+				cnt++;
 			}
+			vv[cnt] = i;
+			sz = cnt + 1;
 		}
-		cout << "Top sticks: ";
-		for (int i = 0; i < vec.size(); i++)
+		
+		cout << "Top sticks:";
+		f = false;
+		for (int i = 0; i < sz; i++)
 		{
-			if (i + 1 != vec.size())
-				cout << vec[i].second << ", ";
-			else
-				cout << vec[i].second << ".\n";
+			if (f)
+				cout << ",";
+			f = true;
+			cout << " " << vv[i] + 1;
 		}
+		cout << ".\n";
 	}
 
 	return 0;
