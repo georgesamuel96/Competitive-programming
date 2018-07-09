@@ -15,7 +15,8 @@
 #include<cmath>
 #include<stack>
 #include<climits>
- 
+#include<functional>
+
 using namespace std;
 typedef long long ll;
 typedef unsigned long long ull;
@@ -27,15 +28,22 @@ typedef vector<char>vc;
 typedef vector<string>vs;
 #define MP make_pair
 #define all(v) v.begin(),v.end()
+#define rall(v) v.rbegin(),v.rend()
+#define EPS 1e-9
+#define PI 3.14159265359
 const ll mod = 1000000007;
-const ll OO = (ll)1e18;
-const int dx[] = { 0, 1, -1, 0, 1, -1, 1, -1 };
-const int dy[] = { 1, 0, 0, -1, 1, -1, -1, 1 };
+const ll OO = (ll)1e9;
+const int dx[] = { 0, 1, 0, -1, 1, -1, 1, -1 };
+const int dy[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 ll gcd(ll a, ll b){ if (b == 0){ return a; }return gcd(b, a % b); }
-ll fast_power(double base, ll power){
-	if (power == 1) return base;
-	if (power % 2 == 0) return fast_power((base*base), power / 2);
-	else return(base*fast_power((base*base), power / 2));
+ll fast_power(ll base, ll power){
+	if (power == 0)
+		return 1;
+	if (power == 1)
+		return (base % mod);
+	if (power % 2 == 0)
+		return (fast_power(((base*base) % mod), power / 2LL) % mod);
+	else return ((base*fast_power(((base*base) % mod) % mod, power / 2LL)) % mod);
 }
 //#pragma warning (disable : 4996)
 void Qalbaz()
@@ -47,89 +55,92 @@ void Qalbaz()
 	ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 	cout << fixed << setprecision(2);
 }
- 
-vs vec;
 map<string, vector<pair<string, int>>>adj;
-map<string, bool>taken;
+vs vec;
 priority_queue<pair<int, string>>pq;
-void process(string node)
+map<string, int>vis;
+int weight(string str, string ss)
 {
-	taken[node] = true;
-	pair<string, int> v;
-	for (int i = 0; i < adj[node].size(); i++)
+	int ans = 0;
+	int x, y, z1, z2;
+	for (int i = 0; i < 4; i++)
 	{
-		v = adj[node][i];
-		if (taken[v.first] == false)
-			pq.push(MP(-(v.second), v.first));
+		x = str[i] - '0';
+		y = ss[i] - '0';
+		z1 = z2 = 0;
+		while (x != y)
+		{
+			z1++;
+			x++;
+			if (x == 10)
+				x = 0;
+		}
+		x = str[i] - '0';
+		y = ss[i] - '0';
+		while (x != y)
+		{
+			z2++;
+			y++;
+			if (y == 10)
+				y = 0;
+		}
+		ans = ans + min(z1, z2);
+	}
+	return ans;
+}
+void process(string str)
+{
+	vis[str] = 1;
+	pair<string, int>v;
+	for (int i = 0; i < adj[str].size(); i++)
+	{
+		v = adj[str][i];
+		if (vis[v.first] == 0)
+		{
+			pq.push(MP(-v.second, v.first));
+		}
 	}
 }
- 
 int main(){
- 
+
 	Qalbaz();
- 
-	pair<int, string>tt;
-	int t, n, x, y, w, mst, mn;
+
+	int t, n, ans;
 	cin >> t;
-	string str;
+	pair<int, string>pr;
 	while (t--)
 	{
-		vec.clear();
 		adj.clear();
-		taken.clear();
+		vis.clear();
+		ans = OO;
 		cin >> n;
-		mst = mn = 1e7;
 		vec.resize(n);
-		str = "0000";
 		for (int i = 0; i < n; i++)
 		{
 			cin >> vec[i];
-			w = 0;
-			for (int k = 0; k < 4; k++)
-			{
-				x = (vec[i][k] - '0') - 0;
-				if (x < 0)
-					x += 10;
-				y = 0 - (vec[i][k] - '0');
-				if (y < 0)
-					y += 10;
-				w += min(x, y);
-			}
-			if (mst > w)
-				mst = w, str = vec[i];
+			ans = min(ans, weight("0000", vec[i]));
 		}
 		for (int i = 0; i < n; i++)
 		{
 			for (int j = i + 1; j < n; j++)
 			{
-				w = 0;
-				for (int k = 0; k < 4; k++)
-				{
-					x = (vec[i][k] - '0') - (vec[j][k] - '0');
-					if (x < 0)
-						x += 10;
-					y = (vec[j][k] - '0') - (vec[i][k] - '0');
-					if (y < 0)
-						y += 10;
-					w += min(x, y);
-				}
-				adj[vec[i]].push_back(MP(vec[j], w));
-				adj[vec[j]].push_back(MP(vec[i], w));
+				adj[vec[i]].push_back(MP(vec[j], weight(vec[i], vec[j])));
+				adj[vec[j]].push_back(MP(vec[i], weight(vec[i], vec[j])));
 			}
 		}
-		y = 0;
-		process(str);
+		process(vec[0]);
 		while (!pq.empty())
 		{
-			tt = pq.top(), pq.pop();
-			x = tt.first;
-			x = -x;
-			str = tt.second;
-			if (taken[str] == false)
-				mst += x, process(str);
+			pr = pq.top();
+			pq.pop();
+			pr.first *= -1;
+			if (vis[pr.second] == 0)
+			{
+				ans += pr.first, process(pr.second);
+			}
 		}
-		cout << mst << "\n";
+		cout << ans << "\n";
 	}
- 
+
 	return 0;
 }
