@@ -28,19 +28,22 @@ typedef vector<char>vc;
 typedef vector<string>vs;
 #define MP make_pair
 #define all(v) v.begin(),v.end()
+#define rall(v) v.rbegin(),v.rend()
 #define EPS 1e-9
 #define PI 3.14159265359
 const ll mod = 1000000007;
 const ll OO = (ll)1e9;
-const int dx[] = { 0, 1, -1, 0, 1, -1, 1, -1 };
-const int dy[] = { 1, 0, 0, -1, 1, -1, -1, 1 };
+const int dx[] = { 0, 1, 0, -1, 1, -1, 1, -1 };
+const int dy[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 ll gcd(ll a, ll b){ if (b == 0){ return a; }return gcd(b, a % b); }
 ll fast_power(ll base, ll power){
+	if (power == 0)
+		return 1;
 	if (power == 1)
-		return base;
+		return (base % mod);
 	if (power % 2 == 0)
-		return fast_power((base*base), power / 2);
-	else return(base*fast_power((base*base), power / 2));
+		return (fast_power(((base*base) % mod), power / 2LL) % mod);
+	else return ((base*fast_power(((base*base) % mod) % mod, power / 2LL)) % mod);
 }
 //#pragma warning (disable : 4996)
 void Qalbaz()
@@ -50,55 +53,42 @@ void Qalbaz()
 	freopen("output.txt", "w", stdout);
 #endif
 	ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
-	cout << fixed << setprecision(4);
+	cout << fixed << setprecision(2);
 }
-
+int arr[1000][1000], dist[1000][1000];
 int n, m;
+priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>>pq;
 bool valid(int r, int c)
 {
 	return (r >= 0 && r < n && c >= 0 && c < m);
 }
-int arr[1000][1000], vis[1000][1000];
-priority_queue < pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>>pq;
-void fill_()
+int dijkstra(int r, int c)
 {
+	pq.push(MP(arr[0][0], MP(r, c)));
 	for (int i = 0; i < 1000; i++)
 		for (int j = 0; j < 1000; j++)
-			vis[i][j] = OO;
-}
-int solve(int i, int j)
-{
-	while (!pq.empty())
-		pq.pop();
-	pq.push(MP(arr[0][0], MP(0, 0)));
-	fill_();
-	vis[0][0] = arr[0][0];
-	
-	int a, b;
-	pair<int, pair<int, int>> v;
-	while (!pq.empty())
+			dist[i][j] = OO;
+	dist[r][c] = arr[0][0];
+	int d;
+	while (pq.empty() == 0)
 	{
-		v = pq.top();
+		d = pq.top().first, r = pq.top().second.first, c = pq.top().second.second;
 		pq.pop();
-		if (v.second.first == n - 1 && v.second.second == m - 1)
-			return v.first;
-		if (v.first > vis[v.second.first][v.second.second])
+		if (d > dist[r][c])
 			continue;
 		for (int i = 0; i < 4; i++)
 		{
-			a = dx[i] + v.second.first;
-			b = dy[i] + v.second.second;
-			if (!valid(a, b))
-				continue;
-			if (v.first + arr[a][b] < vis[a][b])
+			int a = dx[i] + r;
+			int b = dy[i] + c;
+			if (valid(a, b) && d + arr[a][b] < dist[a][b])
 			{
-				pq.push(MP(v.first + arr[a][b], MP(a, b)));
-				vis[a][b] = v.first + arr[a][b];
+				dist[a][b] = d + arr[a][b];
+				pq.push(MP(dist[a][b], MP(a, b)));
 			}
 		}
 	}
+	return dist[n - 1][m - 1];
 }
-
 int main(){
 
 	Qalbaz();
@@ -109,9 +99,13 @@ int main(){
 	{
 		cin >> n >> m;
 		for (int i = 0; i < n; i++)
+		{
 			for (int j = 0; j < m; j++)
+			{
 				cin >> arr[i][j];
-		int ans = solve(0, 0);
+			}
+		}
+		int ans = dijkstra(0, 0);
 		cout << ans << "\n";
 	}
 
