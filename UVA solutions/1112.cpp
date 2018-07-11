@@ -28,19 +28,22 @@ typedef vector<char>vc;
 typedef vector<string>vs;
 #define MP make_pair
 #define all(v) v.begin(),v.end()
+#define rall(v) v.rbegin(),v.rend()
 #define EPS 1e-9
 #define PI 3.14159265359
 const ll mod = 1000000007;
 const ll OO = (ll)1e9;
-const int dx[] = { 0, 1, -1, 0, 1, -1, 1, -1 };
-const int dy[] = { 1, 0, 0, -1, 1, -1, -1, 1 };
+const int dx[] = { 0, 1, 0, -1, 1, -1, 1, -1 };
+const int dy[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 ll gcd(ll a, ll b){ if (b == 0){ return a; }return gcd(b, a % b); }
 ll fast_power(ll base, ll power){
+	if (power == 0)
+		return 1;
 	if (power == 1)
-		return base;
+		return (base % mod);
 	if (power % 2 == 0)
-		return fast_power((base*base), power / 2);
-	else return(base*fast_power((base*base), power / 2));
+		return (fast_power(((base*base) % mod), power / 2LL) % mod);
+	else return ((base*fast_power(((base*base) % mod) % mod, power / 2LL)) % mod);
 }
 //#pragma warning (disable : 4996)
 void Qalbaz()
@@ -50,69 +53,69 @@ void Qalbaz()
 	freopen("output.txt", "w", stdout);
 #endif
 	ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
-	cout << fixed << setprecision(4);
+	cout << fixed << setprecision(2);
 }
-vi vis;
 vector<vector<pair<int, int>>>adj;
-priority_queue < pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>>pq;
-int solve(int src, int dist)
+priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>>pq;
+int dist[101][101];
+int dijkstra(int n, int e, int time)
 {
-	while (!pq.empty())
-		pq.pop();
-	pq.push(MP(0, src));
-	vis[src] = 0;
-	pair<int, int>v, u;
+	for (int i = 0; i < 101; i++)
+		for (int j = 0; j < 101; j++)
+			dist[i][j] = OO;
+	for (int i = 1; i <= n; i++)
+	{
+		pq.push(MP(0, MP(i, i)));
+		dist[i][i] = 0;
+	}
+	int d, u, cell;
+	set<int>st;
+	pair<int, int>v;
 	while (!pq.empty())
 	{
-		v = pq.top();
+		d = pq.top().first;
+		u = pq.top().second.first, cell = pq.top().second.second;
 		pq.pop();
-		if (v.second + 1 == dist)
-			return v.first;
-		if (v.first > vis[v.second])
-			continue;
-		for (int i = 0; i < adj[v.second].size(); i++)
+		if (u == e)
 		{
-			u = adj[v.second][i];
-			if (v.first + u.second < vis[u.first])
+			st.insert(cell);
+			continue;
+		}
+		if (d > dist[u][cell])
+			continue;
+		for (int i = 0; i < adj[u].size(); i++)
+		{
+			v = adj[u][i];
+			if (d + v.second < dist[v.first][cell] && d + v.second <= time)
 			{
-				vis[u.first] = v.first + u.second;
-				pq.push(MP(vis[u.first], u.first));
+				dist[v.first][cell] = d + v.second;
+				pq.push(MP(dist[v.first][cell], MP(v.first, cell)));
 			}
 		}
 	}
-	return OO;
+	return (int)st.size();
 }
-
 int main(){
 
 	Qalbaz();
 
-	int t;
+	int t, n, e, time, m, u, v, ff = 0, w;
 	cin >> t;
-	int timer, e, u, v, m, n, ans, x;
 	while (t--)
 	{
-		cin >> n >> e >> timer >> m;
-		adj.clear();
-		adj.resize(n);
-		while (m--)
-		{
-			cin >> u >> v >> x;
-			u--, v--;
-			adj[u].push_back(MP(v, x));
-		}
-		ans = 0;
-		for (int i = 0; i < n; i++)
-		{
-			vis.clear();
-			vis.resize(n, OO);
-			x = solve(i, e);
-			if (x <= timer)
-				ans++;
-		}
-		cout << ans << "\n";
-		if (t)
+		if (ff > 0)
 			cout << "\n";
+		ff = 1;
+		cin >> n >> e >> time >> m;
+		adj.clear();
+		adj.resize(n + 1);
+		for (int i = 0; i < m; i++)
+		{
+			cin >> u >> v >> w;
+			adj[u].push_back(MP(v, w));
+		}
+		int ans = dijkstra(n, e, time);
+		cout << ans << "\n";
 	}
 
 	return 0;
